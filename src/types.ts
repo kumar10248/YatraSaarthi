@@ -5,3 +5,9 @@ export interface RouteConfig {
     element: LazyExoticComponent<any>;
     layout?: LazyExoticComponent<any>;
 }
+
+export interface AuthPageProps {
+    isLogin: boolean;
+    toggleAuth: () => void;
+}
+  

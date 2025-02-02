@@ -1,6 +1,7 @@
 import express, { Response } from "express";
 import "dotenv/config.js";
 import userRoute from "./routes/user.routes.js";
+import sightRoute from "./routes/sightSeeing.routes.js";
 
 
 const app = express();
@@ -14,6 +15,7 @@ app.get("/", (_, res: Response) => {
 });
 
 app.use("/",userRoute)
+// app.use("/",sightRoute);
 
 
 export default app;

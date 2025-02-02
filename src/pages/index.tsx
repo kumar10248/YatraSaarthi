@@ -2,6 +2,8 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import {
   Map, MessageCircle, Calendar, Wallet, Heart, Star, Search, Plane,
@@ -100,6 +102,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, description }) =
   </Card>
 );
 
+
 const LandingPage = () => {
   const controls = useAnimation();
   const [ref, inView] = useInView({
@@ -135,9 +138,48 @@ const LandingPage = () => {
     }
   };
 
+
+  // country and date
+
+  const [destinationInfo, setDestinationInfo] = useState({
+    country:"",
+    startDate:""
+  })
+
+
+  // handleOnChange
+
+  const handleDestinationChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+
+
+    setDestinationInfo((prev)=>({
+      ...prev,
+      [name]:value
+    }))
+    // Use name and value as needed
+
+    console.log(destinationInfo)
+};
+
+const navigate = useNavigate();
+
+
+const handleNavigation=(path:string) => {
+
+
+    navigate(path);
+  
+}
+
+// const handleDestinationSubmit = ()=>{
+//   console.log();
+// }
+
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100 overflow-hidden">
       {/* Navigation */}
+      
       <motion.nav
         initial={{ y: -100 }}
         animate={{ y: 0 }}
@@ -173,14 +215,14 @@ const LandingPage = () => {
               <motion.div
                 whileHover={{ scale: 1.05 }}
               >
-                <Button variant="outline" className="hidden md:inline-flex text-gray-100 border-gray-400 hover:bg-gray-800">
+                <Button variant="outline" className="hidden md:inline-flex text-gray-100 border-gray-400 hover:bg-gray-800" name="login"  onClick={()=>handleNavigation('/login')}>
                   Login
                 </Button>
               </motion.div>
               <motion.div
                 whileHover={{ scale: 1.05 }}
               >
-                <Button className="bg-orange-500 hover:bg-orange-600">Sign Up</Button>
+                <Button className="bg-orange-500 hover:bg-orange-600" onClick={()=>handleNavigation('/SignUp')}>Sign Up</Button>
               </motion.div>
             </div>
           </div>
@@ -216,11 +258,11 @@ const LandingPage = () => {
                 className="p-4 bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-lg mb-8 border border-gray-700"
               >
                 <div className="flex flex-col md:flex-row gap-4">
-                  <Input placeholder="Where do you want to go?" className="flex-grow bg-gray-700/50 text-gray-100 border-gray-600" />
-                  <Input type="date" className="md:w-40 bg-gray-700/50 text-gray-100 border-gray-600" />
+                  <Input placeholder="Where do you want to go?" className="flex-grow bg-gray-700/50 text-gray-100 border-gray-600" name="country" onChange={(e)=>handleDestinationChange(e)}/>
+                  <Input type="date" className="md:w-40 bg-gray-700/50 text-gray-100 border-gray-600" name="startDate"  onChange={(e)=>handleDestinationChange(e)} />
                   <motion.div whileHover={{ scale: 1.05 }}>
-                    <Button className="bg-orange-500 hover:bg-orange-600 w-full">
-                      <Search className="mr-2 h-4 w-4" /> Search
+                    <Button className="bg-orange-500 hover:bg-orange-600 w-full" onClick={()=>handleNavigation('/SightSeeing')}>
+                      <Search className="mr-2 h-4 w-4"  /> Search
                     </Button>
                   </motion.div>
                 </div>

@@ -1,3 +1,4 @@
+import axios from 'axios';
 import {User}  from "../model/user.js";
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
@@ -61,6 +62,8 @@ export const LoginUser = async (req: Request, res: Response) => {
 
         const user = await User.findOne({ email });
 
+
+
         if (!user) {
             res.status(400).json({ message: "User does not exist" });
             return
@@ -72,6 +75,18 @@ export const LoginUser = async (req: Request, res: Response) => {
             res.status(400).json({ message: "Invalid credentials" });
             return
         }
+
+        const authResponse = await axios.post('http://api.tektravels.com/SharedServices/SharedData.svc/rest/Authenticate', {
+            ClientId: "ApiIntegrationNew",
+            UserName: "Hackathon",
+            Password: "Hackathon@1234",
+            EndUserIp: "192.168.11.120"
+        });
+
+        const tokenId = authResponse.data.TokenId;
+
+
+        res.cookie('TokenId', tokenId, { httpOnly: true });
 
         res.status(200).json({ message: "User logged in successfully" });
         return
