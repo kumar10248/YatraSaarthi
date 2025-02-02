@@ -168,13 +168,13 @@ const navigate = useNavigate();
 const handleNavigation=(path:string) => {
 
 
-    navigate(path);
+    navigate(path,{state:destinationInfo});
   
 }
 
-// const handleDestinationSubmit = ()=>{
-//   console.log();
-// }
+const handleSubmit = ()=>{
+  fetch("http://localhost:3000/")
+}
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100 overflow-hidden">
@@ -262,7 +262,7 @@ const handleNavigation=(path:string) => {
                   <Input type="date" className="md:w-40 bg-gray-700/50 text-gray-100 border-gray-600" name="startDate"  onChange={(e)=>handleDestinationChange(e)} />
                   <motion.div whileHover={{ scale: 1.05 }}>
                     <Button className="bg-orange-500 hover:bg-orange-600 w-full" onClick={()=>handleNavigation('/SightSeeing')}>
-                      <Search className="mr-2 h-4 w-4"  /> Search
+                      <Search className="mr-2 h-4 w-4"  onClick={handleSubmit}/> Search
                     </Button>
                   </motion.div>
                 </div>

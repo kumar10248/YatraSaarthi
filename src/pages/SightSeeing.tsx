@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin } from 'lucide-react'; // Optional icon library
 
+// import { useLocation } from "react-router-dom";
 // Define type for destination properties
 interface Destination {
   CityName: string;
@@ -86,7 +87,7 @@ const SightSeeing: React.FC = () => {
           headers: {
             "Content-Type": "application/json", // Ensure the server understands the request body format
           },
-          body: JSON.stringify({ /* any data you want to send in the request body */ }), // Add data if needed for POST
+          body: JSON.stringify({ countryName:"France"}), // Add data if needed for POST
         });
 
         if (!response.ok) {
