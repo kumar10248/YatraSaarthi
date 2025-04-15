@@ -1,212 +1,493 @@
-import { motion } from 'framer-motion';
-import { Star, Users, Globe, MessageCircle, Instagram, Twitter, Heart } from 'lucide-react';
-import { useInView } from 'react-intersection-observer';
+import React, { useState, useEffect } from "react";
+import { FaSolarPanel, FaWind } from "react-icons/fa";
+import { LuCalendarDays, LuMapPin, LuSun, LuRefreshCw } from "react-icons/lu";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardTitle,
+  CardDescription
+} from "@/components/ui/card";  // Adjust path as needed
 
-const CommunityPage = () => {
-  const [ref, inView] = useInView({
-    triggerOnce: true,
-    threshold: 0.1
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
+
+const Dashboard = () => {
+  // Main data state
+  const [data, setData] = useState({
+    temperature: 26.5,
+    sunlight: 750,
+    windspeed: 4.2,
+    time: new Date().toLocaleTimeString(),
+    date: new Date().toLocaleDateString(),
+    location: "New Delhi",
+    longitude: "77.1025",
+    latitude: "28.7041",
+    forecast: {
+      solar: {
+        current: 750,
+        max: 950,
+        min: 150,
+        nonGeneratingHours: 12,
+        predicted: [2, 5.5, 2, 8.5, 1.5, 5, 6.8, 7.2, 5.5, 3.2, 1.8, 0.5],
+      },
+      wind: {
+        current: 4.2,
+        max: 7.8,
+        min: 1.2,
+        nonGeneratingHours: 8,
+        predicted: [3, 4.5, 4, 8.5, 1, 5, 5.5, 6.2, 4.8, 3.6, 2.1, 1.2],
+      },
+    },
+    loading: false,
+    predictionAccuracy: 87.5,
+    hourlyForecast: [],
   });
 
-  const testimonials = [
-    {
-      name: "Adventure Seekers Group",
-      location: "Bali, Indonesia",
-      text: "YatraSaarthi transformed our group trip! The AI suggestions matched everyone's interests perfectly.",
-      rating: 5,
-      image: "https://images.unsplash.com/photo-1528543606781-2f6e6857f318"
-    },
-    {
-      name: "Family Explorers",
-      location: "Swiss Alps",
-      text: "The collaborative planning feature made including everyone's preferences a breeze!",
-      rating: 4.9,
-      image: "https://images.unsplash.com/photo-1602002418816-5c0aeef426aa"
-    },
-    // Add more testimonials
-  ];
+  // Generate hourly forecast data
+  useEffect(() => {
+    const hours = Array.from({ length: 24 }, (_, i) => ({
+      time: `${i.toString().padStart(2, "0")}:00`,
+      temperature: (Math.random() * 10 + 20).toFixed(1),
+      wind: (Math.random() * 8 + 1).toFixed(1),
+      solar: i >= 6 && i <= 18 ? (Math.random() * 800 + 200).toFixed(0) : "0",
+    }));
 
-  const communityStats = [
-    { value: "500K+", label: "Active Travelers", icon: <Users /> },
-    { value: "150+", label: "Destinations", icon: <Globe /> },
-    { value: "98%", label: "Positive Reviews", icon: <MessageCircle /> }
-  ];
+    setData((prev) => ({ ...prev, hourlyForecast: hours }));
+  }, []);
+
+  // Chart data formatting
+  const chartData = Array.from({ length: 12 }, (_, i) => ({
+    name: `${(i + 6) % 24}:00`,
+    solar: data.forecast.solar.predicted[i],
+    wind: data.forecast.wind.predicted[i],
+  }));
+
+  // Update clock
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = new Date();
+      setData((prevData) => ({
+        ...prevData,
+        time: now.toLocaleTimeString(),
+        date: now.toLocaleDateString(),
+      }));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Handle input change
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // Fetch weather data
+  const fetchWeatherData = () => {
+    setData((prev) => ({ ...prev, loading: true }));
+
+    // Simulate API call
+    setTimeout(() => {
+      const temp = (Math.random() * 10 + 20).toFixed(1);
+      const wind = (Math.random() * 8 + 1).toFixed(1);
+      const solar = (Math.random() * 800 + 200).toFixed(0);
+
+      setData((prev) => ({
+        ...prev,
+        temperature: temp,
+        windspeed: wind,
+        sunlight: solar,
+        loading: false,
+      }));
+    }, 1500);
+  };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100">
-      {/* Hero Section */}
-      <section className="relative pt-24 pb-32 bg-gradient-to-br from-blue-900/30 to-green-900/30">
-        <div className="max-w-7xl mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center"
-          >
-            <h1 className="text-5xl md:text-6xl font-bold mb-6">
-              <span className="bg-gradient-to-r from-blue-400 to-green-400 bg-clip-text text-transparent">
-                YatraSaarthi
-              </span>{' '}
-              Community
-            </h1>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-              Join millions of travelers sharing experiences, stories, and adventures
-            </p>
-          </motion.div>
+    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+      <div className="container mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl md:text-3xl font-bold text-indigo-900">
+            AI-Powered Renewable Energy Forecasting
+          </h1>
+          <Badge className="bg-indigo-600" variant="default">
+            NTPC Project
+          </Badge>
         </div>
-      </section>
 
-      {/* Featured Stories */}
-      <section className="py-20 relative">
-        <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-16">
-            Featured Travel Stories
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[1, 2, 3].map((item) => (
-              <motion.div
-                key={item}
-                whileHover={{ scale: 1.05 }}
-                className="relative group overflow-hidden rounded-2xl"
-              >
-                <img
-                  src={`https://images.unsplash.com/photo-${item === 1 ? '1506929562872-bb5a63eaa4a2' : item === 2 ? '1469854523086-cc02fe5d8800' : '1473625247510-8ceb1760943f'}`}
-                  alt="Travel story"
-                  className="w-full h-96 object-cover transform group-hover:scale-110 transition-all duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-transparent to-transparent p-6 flex flex-col justify-end">
-                  <h3 className="text-xl font-semibold mb-2">Mountain Escape</h3>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 rounded-full bg-blue-400 flex items-center justify-center">
-                      <Users className="w-4 h-4" />
+        {/* Main Dashboard Card */}
+        <Card className="shadow-lg">
+          <CardHeader className="bg-gradient-to-r from-indigo-50 to-blue-50 pb-2">
+            <CardTitle className="text-xl text-indigo-800">
+              Current Conditions
+            </CardTitle>
+            <CardDescription>Real-time weather and energy data</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Left side - Location & Weather */}
+              <div className="space-y-6">
+                {/* Location Controls */}
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="grid grid-cols-2 gap-3 flex-1">
+                    <div>
+                      <label className="text-sm text-gray-500 mb-1 block">
+                        Longitude
+                      </label>
+                      <Input
+                        value={data.longitude}
+                        name="longitude"
+                        onChange={handleInputChange}
+                      />
                     </div>
-                    <span>Adventure Group</span>
+                    <div>
+                      <label className="text-sm text-gray-500 mb-1 block">
+                        Latitude
+                      </label>
+                      <Input
+                        value={data.latitude}
+                        name="latitude"
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                  </div>
+                  <Button
+                    onClick={fetchWeatherData}
+                    disabled={data.loading}
+                    className="h-full mt-6"
+                  >
+                    {data.loading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                        <span>Loading</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <LuRefreshCw size={16} />
+                        <span>Update</span>
+                      </div>
+                    )}
+                  </Button>
+                </div>
+
+                {/* Temperature */}
+                <div className="flex items-end gap-2">
+                  <span className="text-5xl font-bold text-indigo-900">
+                    {data.temperature}
+                  </span>
+                  <span className="text-2xl text-indigo-600 mb-1">°C</span>
+                </div>
+
+                {/* Date, Time & Location */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <LuCalendarDays size={18} />
+                    <span>
+                      {data.date} • {data.time}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <LuMapPin size={18} />
+                    <span>{data.location}</span>
                   </div>
                 </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+              </div>
 
-      {/* Community Stats */}
-      <section className="py-20 bg-gradient-to-br from-blue-900/20 to-green-900/20">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid md:grid-cols-3 gap-8">
-            {communityStats.map((stat, index) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 20 }}
-                animate={inView ? { opacity: 1, y: 0 } : {}}
-                transition={{ delay: index * 0.2 }}
-                className="bg-gray-900/50 backdrop-blur-sm p-8 rounded-2xl text-center border border-gray-800"
-              >
-                <div className="text-blue-400 mb-4 mx-auto w-16 h-16 bg-blue-900/20 rounded-full flex items-center justify-center">
-                  {stat.icon}
-                </div>
-                <div className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-green-400 bg-clip-text text-transparent">
-                  {stat.value}
-                </div>
-                <p className="text-gray-300 mt-2">{stat.label}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+              {/* Right side - Current Metrics */}
+              <div className="grid grid-cols-1 gap-4">
+                {/* Model Accuracy */}
+                <Card className="shadow-sm border-indigo-100">
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="font-semibold text-gray-700">
+                        AI Model Accuracy
+                      </h3>
+                      <span className="text-xl font-bold text-indigo-600">
+                        {data.predictionAccuracy}%
+                      </span>
+                    </div>
+                    <Progress value={data.predictionAccuracy} className="h-2" />
+                  </CardContent>
+                </Card>
 
-      {/* Testimonials */}
-      <section className="py-20 relative" ref={ref}>
-        <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-16">
-            Traveler Experiences
-          </h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <motion.div
-                key={testimonial.name}
-                initial={{ opacity: 0, x: -50 }}
-                animate={inView ? { opacity: 1, x: 0 } : {}}
-                transition={{ delay: index * 0.2 }}
-                className="bg-gray-900/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-800"
-              >
-                <div className="flex items-start mb-6">
-                  <img
-                    src={testimonial.image}
-                    alt={testimonial.name}
-                    className="w-16 h-16 rounded-full object-cover"
-                  />
-                  <div className="ml-4">
-                    <h3 className="text-xl font-semibold">{testimonial.name}</h3>
-                    <p className="text-gray-400">{testimonial.location}</p>
-                  </div>
-                </div>
-                <p className="text-gray-300 mb-4">{testimonial.text}</p>
-                <div className="flex items-center">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`w-5 h-5 ${i < Math.floor(testimonial.rating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
-                    />
-                  ))}
-                  <span className="ml-2 text-gray-400">{testimonial.rating}/5</span>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+                {/* Current Wind */}
+                <Card className="shadow-sm border-indigo-100">
+                  <CardContent className="p-4 flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-blue-100 p-2 rounded-lg">
+                        <FaWind size={20} className="text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Wind Speed</p>
+                        <p className="font-medium">{data.windspeed} m/s</p>
+                      </div>
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {data.windspeed > 3 ? (
+                        <Badge
+                          variant="outline"
+                          className="bg-green-50 text-green-700 border-green-200"
+                        >
+                          Optimal
+                        </Badge>
+                      ) : (
+                        <Badge
+                          variant="outline"
+                          className="bg-amber-50 text-amber-700 border-amber-200"
+                        >
+                          Moderate
+                        </Badge>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
 
-      {/* Social Feed */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-16">
-            #YatraSaarthiMoments
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
-              <motion.div
-                key={item}
-                whileHover={{ scale: 1.05 }}
-                className="relative group overflow-hidden rounded-xl"
-              >
-                <img
-                  src={`https://source.unsplash.com/random/800x800/?travel,${item}`}
-                  alt="Social post"
-                  className="w-full h-64 object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 flex items-end p-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="flex items-center space-x-2">
-                    <Instagram className="w-5 h-5 text-pink-400" />
-                    <span className="text-sm">@traveler_{item}</span>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+                {/* Current Solar */}
+                <Card className="shadow-sm border-indigo-100">
+                  <CardContent className="p-4 flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-amber-100 p-2 rounded-lg">
+                        <LuSun size={20} className="text-amber-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Solar Radiation</p>
+                        <p className="font-medium">{data.sunlight} W/m²</p>
+                      </div>
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {data.sunlight > 600 ? (
+                        <Badge
+                          variant="outline"
+                          className="bg-green-50 text-green-700 border-green-200"
+                        >
+                          Excellent
+                        </Badge>
+                      ) : (
+                        <Badge
+                          variant="outline"
+                          className="bg-amber-50 text-amber-700 border-amber-200"
+                        >
+                          Good
+                        </Badge>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-900 to-green-900">
-        <div className="max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-4xl font-bold mb-6">
-            Ready to Share Your Journey?
-          </h2>
-          <p className="text-xl mb-8">
-            Join our community of passionate travelers and start sharing your adventures!
-          </p>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="bg-white text-gray-900 px-8 py-4 rounded-full font-semibold flex items-center justify-center mx-auto space-x-2"
-          >
-            <Heart className="w-5 h-5" />
-            <span>Join Community</span>
-          </motion.button>
-        </div>
-      </section>
+        {/* Energy Generation Forecast */}
+        <Card className="shadow-lg">
+          <CardHeader className="bg-gradient-to-r from-indigo-50 to-blue-50 pb-2">
+            <CardTitle className="text-xl text-indigo-800">
+              Energy Generation Forecast
+            </CardTitle>
+            <CardDescription>
+              12-hour prediction based on weather patterns
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <Tabs defaultValue="chart" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="chart">Chart View</TabsTrigger>
+                <TabsTrigger value="stats">Statistics</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="chart" className="mt-0">
+                <div className="h-80 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <XAxis dataKey="name" stroke="#6b7280" />
+                      <YAxis stroke="#6b7280" />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "white",
+                          border: "1px solid #e5e7eb",
+                          borderRadius: "0.375rem",
+                          boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1)",
+                        }}
+                      />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="solar"
+                        stroke="#f59e0b"
+                        activeDot={{ r: 8 }}
+                        strokeWidth={2}
+                        dot={{ r: 4 }}
+                        name="Solar (kW)"
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="wind"
+                        stroke="#3b82f6"
+                        activeDot={{ r: 8 }}
+                        strokeWidth={2}
+                        dot={{ r: 4 }}
+                        name="Wind (kW)"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="stats" className="mt-0">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Solar Stats */}
+                  <Card className="shadow-sm border-amber-100">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center gap-2">
+                        <FaSolarPanel className="text-amber-500" />
+                        <CardTitle className="text-lg">Solar Panel</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Today's Max:</span>
+                          <span className="font-medium">
+                            {data.forecast.solar.max} W/m²
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Today's Min:</span>
+                          <span className="font-medium">
+                            {data.forecast.solar.min} W/m²
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">
+                            Non-generating Hours:
+                          </span>
+                          <span className="font-medium">
+                            {data.forecast.solar.nonGeneratingHours} hours
+                          </span>
+                        </div>
+                        <div className="flex justify-between border-t border-gray-200 pt-3 mt-3">
+                          <span className="text-gray-700 font-medium">
+                            Estimated Output:
+                          </span>
+                          <span className="font-bold text-amber-600">
+                            {(data.forecast.solar.max * 0.15).toFixed(1)} kWh/m²
+                          </span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Wind Stats */}
+                  <Card className="shadow-sm border-blue-100">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center gap-2">
+                        <FaWind className="text-blue-500" />
+                        <CardTitle className="text-lg">Wind Turbine</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Today's Max:</span>
+                          <span className="font-medium">
+                            {data.forecast.wind.max} m/s
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Today's Min:</span>
+                          <span className="font-medium">
+                            {data.forecast.wind.min} m/s
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">
+                            Non-generating Hours:
+                          </span>
+                          <span className="font-medium">
+                            {data.forecast.wind.nonGeneratingHours} hours
+                          </span>
+                        </div>
+                        <div className="flex justify-between border-t border-gray-200 pt-3 mt-3">
+                          <span className="text-gray-700 font-medium">
+                            Estimated Output:
+                          </span>
+                          <span className="font-bold text-blue-600">
+                            {(data.forecast.wind.max * 0.5).toFixed(1)} kWh
+                          </span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+
+        {/* Hourly Forecast */}
+        <Card className="shadow-lg">
+          <CardHeader className="bg-gradient-to-r from-indigo-50 to-blue-50 pb-2">
+            <CardTitle className="text-xl text-indigo-800">
+              24-Hour Forecast
+            </CardTitle>
+            <CardDescription>
+              Hourly weather and energy prediction
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="overflow-x-auto pb-4">
+              <div className="flex gap-3 min-w-max">
+                {data.hourlyForecast.map((hour, index) => (
+                  <Card
+                    key={index}
+                    className="shadow-sm w-32 flex-shrink-0 transition-all hover:shadow-md"
+                  >
+                    <CardContent className="p-3 text-center">
+                      <p className="font-medium text-gray-700 mb-2">
+                        {hour.time}
+                      </p>
+                      <p className="text-lg font-bold mb-2">
+                        {hour.temperature}°C
+                      </p>
+                      <div className="flex justify-between text-sm text-gray-600 mt-3">
+                        <div className="flex items-center">
+                          <FaWind size={12} className="mr-1" />
+                          <span>{hour.wind}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <LuSun size={12} className="mr-1" />
+                          <span>{hour.solar}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
 
-export default CommunityPage;
+export default Dashboard;
